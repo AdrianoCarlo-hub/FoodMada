@@ -1,5 +1,6 @@
 // lib/core/database_client.dart
 
+import 'dart:io';
 import 'package:postgres/postgres.dart';
 
 class DatabaseClient {
@@ -7,30 +8,36 @@ class DatabaseClient {
 
   DatabaseClient(this.pool);
 
-  /// Initialise le pool de connexions vers PostgreSQL
+  /// Initialise la connexion PostgreSQL
   factory DatabaseClient.initialize() {
+    final host = Platform.environment['DB_HOST'];
+    final port = Platform.environment['DB_PORT'];
+    final database = Platform.environment['DB_NAME'];
+    final user = Platform.environment['DB_USER'];
+    final password = Platform.environment['DB_PASSWORD'];
+
     final pool = Pool.withEndpoints(
       [
         Endpoint(
-          host: 'localhost',
-          port: 5432,
-          database: 'madafood_db',
-          username: 'postgres',
-          //  MDP POSTGRESQL
-          password: 'Lovanirina#3', 
+          host: host ?? 'localhost',
+          port: int.tryParse(port ?? '5432') ?? 5432,
+          database: database ?? 'madafood_db',
+          username: user ?? 'postgres',
+          password: password ?? '',
         ),
       ],
       settings: const PoolSettings(
-        // Autorise jusqu'à 5 connexions simultanées pour gérer les requêtes de l'API
         maxConnectionCount: 5,
-        sslMode: SslMode.disable, 
+
+        // Obligatoire sur Render PostgreSQL
+        sslMode: SslMode.require,
       ),
     );
 
     return DatabaseClient(pool);
   }
 
-  /// Méthode utilitaire pour fermer proprement la connexion lors de l'arrêt du serveur
+  /// Ferme proprement les connexions
   Future<void> close() async {
     await pool.close();
   }
