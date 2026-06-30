@@ -14,4 +14,4 @@ RUN dart_frog build
 
 EXPOSE 8080
 
-CMD ["dart_frog", "serve", "build", "--port", "8080"]
+CMD ["dart", "build/bin/server.dart"]
